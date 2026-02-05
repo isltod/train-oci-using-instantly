@@ -1,6 +1,6 @@
 # 디비 서버-----------------------------------------------------------------
 # MySQL 3306 포트 열기
-sudo iptables -I INPUT 6 -p tcp --dport 3306 -m state --state NEW -j ACCEPT
+sudo iptables -I INPUT 5 -p tcp --dport 3306 -j ACCEPT
 sudo netfilter-persistent save
 
 # MySQL 설치
@@ -32,13 +32,20 @@ SET GLOBAL validate_password.length=4;
 CREATE USER 'root'@'%' IDENTIFIED BY '1111';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
-
 exit
+
+# 외부 클라이언트 접속 허가
+sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf
+# bind-address = 127.0.0.1 -> 0.0.0.0
+sudo service mysql restart
 
 # 앱 서버-------------------------------------------
 # Flask 5000 포트 열기 - INPUT 5 이하로 해야 열리더라...
 sudo iptables -I INPUT 1 -p tcp --dport 5000 -j ACCEPT
 sudo netfilter-persistent save
+# 지울 때는
+#sudo iptables -L INPUT -n --line-numbers
+#sudo iptables -D INPUT 2
 
 # MySQL 설치
 sudo apt update
@@ -76,3 +83,7 @@ pip install faker
 # 앱 실행
 export FLASK_APP=hello
 flask run --host=0.0.0.0
+# 로컬에서 http://168.107.57.198:5000/ 확인
+
+# DB 스키마 추가
+mysql --host=10.0.0.161 test -u root -p < mysql_schema.sql
