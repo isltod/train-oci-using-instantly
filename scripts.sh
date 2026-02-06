@@ -36,7 +36,8 @@ exit
 
 # 외부 클라이언트 접속 허가
 sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf
-# bind-address = 127.0.0.1 -> 0.0.0.0
+# bind-address = 0.0.0.0
+# mysqlx-bind-address = 0.0.0.0
 sudo service mysql restart
 
 # 앱 서버-------------------------------------------
@@ -75,7 +76,8 @@ ocisampleweb
 # Flask와 관련 패키지 설치
 pip install --upgrade pip
 pip install flask
-pip install pymysql
+# pip install pymysql
+pip install mysql-connector-python
 pip install faker
 
 # hello.py 작성
@@ -85,5 +87,23 @@ export FLASK_APP=hello
 flask run --host=0.0.0.0
 # 로컬에서 http://168.107.57.198:5000/ 확인
 
+# mysql_schema.sql 작성
+
 # DB 스키마 추가
 mysql --host=10.0.0.161 test -u root -p < mysql_schema.sql
+
+# sample-monolith.py 작성
+
+# monolith db 연동 앱 실행
+export FLASK_APP=hello
+flask run --host=0.0.0.0
+# 로컬에서 http://168.107.57.198:5000/, http://168.107.57.198:5000/hello 확인
+
+# monolith 서비스 파일 작성
+sudo vim /etc/systemd/system/sample-monolith.service
+
+# monolith 서비스 등록
+sudo systemctl daemon-reload
+sudo systemctl enable sample-monolith.service
+sudo systemctl start sample-monolith.service
+sudo systemctl status sample-monolith.service

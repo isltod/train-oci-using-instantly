@@ -3,6 +3,8 @@ from faker import Faker
 from flask import Flask, request
 import logging
 import pymysql
+import mysql.connector
+
 
 app = Flask(__name__)
 
@@ -12,7 +14,8 @@ logger.setLevel(logging.INFO)
 fake = Faker()
 
 # DB 접속 환경
-mysql_db_host_ip = "10.0.0.161"
+mysql_db_host_ip = "168.107.33.56"
+# mysql_db_host_ip = "10.0.0.161"
 mysql_db_user_name = "root"
 mysql_db_password = "1111"
 mysql_db_name = "test"
@@ -21,7 +24,7 @@ mysql_db_name = "test"
 def index():
     try:
         # DB 접속
-        conn = pymysql.connect(
+        conn = mysql.connector.connect(
             host=mysql_db_host_ip, 
             user=mysql_db_user_name, 
             password=mysql_db_password, 

@@ -1,0 +1,13 @@
+[Unit]
+Description=Demo APP Service to serve flask web-app.
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/venvs/ocisampleweb
+Environment="FLASK_APP=sample-monolith"
+ExecStart=/bin/bash -c "cd /home/ubuntu/venvs/ocisampleweb; source /home/ubuntu/venvs/ocisampleweb/bin/activate ; flask run --host=0.0.0.0"
+
+[Install]
+WantedBy=multi-user.target
