@@ -106,67 +106,14 @@ plink.exe -ssh -i "c:\Users\wolf\.ssh\id_rsa" ubuntu@168.107.9.193 -nc %host:%po
 # but 이렇게 설치해봐야 프라이빗 서브넷에서는 NAT 게이트웨이를 은근슬쩍 빼놔서 외부 접속이 안되니 쓸모없음...
 #---------------------------------------------------------------------------------
 
-# 오라클 개발자용 23c 설치 - 근데 이건 쓸모 있나?
-# 여기는 아래 도커 설치로...
-sudo apt update && sudo apt upgrade -y
-sudo apt-get install ca-certificates curl gnupg lsb-release
-sudo apt autoremove
-sudo mkdir -m 0755 -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-systemctl status docker
-sudo usermod -aG docker $USER
-newgrp docker
-docker version
-docker run hello-world
+# 스왑 4G 설정
+free -h
+sudo dd if=/dev/zero of=/swapfile bs=1M count=4096
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+free -h
 
-# 1. 오라클 데이터베이스 23ai (23c) Free 이미지 pull
-sudo docker pull container-registry.oracle.com/database/free:latest
-
-# 2. 컨테이너 실행 - 그냥 버전
-sudo docker run -d --name oracle23ai \
--p 1521:1521 -p 5500:5500 \
--e ORACLE_PWD=YourSecurePassword123! \
-container-registry.oracle.com/database/free:latest
-
-# 2. 컨테이너 실행 - 이게 플러거블인지 나발인지...
-sudo docker run -d --name oracle23ai \
--p 1521:1521 \
--e ORACLE_PWD=YourSecurePassword123! \
--v /opt/oracle/oradata:/opt/oracle/oradata \
-://
-
-sudo docker exec -it oracle23ai bash -c "source /home/oracle/.bashrc; sqlplus / as sysdba"
-
--- CDB$ROOT에 있는지 확인
-SHOW CON_NAME;
-
--- 새로운 PDB 생성 (PDB$SEED 사용)
-CREATE PLUGGABLE DATABASE TESTPDB 
-ADMIN USER pdbadmin IDENTIFIED BY YourPDBPassword123!
-FILE_NAME_CONVERT=('/opt/oracle/oradata/FREE/pdbseed/', '/opt/oracle/oradata/FREE/TESTPDB/');
-
--- PDB 오픈
-ALTER PLUGGABLE DATABASE TESTPDB OPEN;
-
--- PDB를 현재 컨테이너로 설정하여 서비스 저장
-ALTER SESSION SET CONTAINER = TESTPDB;
-ALTER SYSTEM REGISTER;
-
--- PDB 목록 및 상태 확인
-SHOW PDBS;
-EXIT;
-
-
-# 컨테이너 상태 확인
-sudo docker ps
-# SQL*Plus로 접속 (컨테이너 내부)
-sudo docker exec -it oracle23ai sqlplus sys/YourSecurePassword123!@FREEPDB1 as sysdba
-# OCI 방화벽(iptables) 해제
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1521 -j ACCEPT
-sudo netfilter-persistent save
-
-#-----------------------도커 설치---------------------------------
-sudo apt-get update
+docker logs -f oracle23ai
+Password cannot be null. Enter password
