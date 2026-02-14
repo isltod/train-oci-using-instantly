@@ -1,0 +1,19 @@
+# 루트, 기존 3000번 포트로 서비스 되고 있는 seed-sharing-2026 하위로 설정
+server {
+    listen 80;
+    listen [::]:80;
+
+    root /var/www/://seedlibrary.net;
+    index index.html;
+
+    server_name seedlibrary.net www.seedlibrary.net;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+	
+    location /seed-sharing-2026/ {
+        # 3000번 포트로 전달
+        proxy_pass http://localhost:3000/;
+    }
+}
